@@ -22,7 +22,7 @@ function checkStatus(response){
     }
 }
 
-//getRandomUser('https://randomuser.me/api/').then(data => console.log(data.results))
+//getRandomUser('https://randomuser.me/api/').then(data => console.log(data.results[0]))
   
 //Adding the search form to the page
 const searchHtml = `
@@ -37,6 +37,38 @@ divSearchContainer.insertAdjacentHTML('afterend', searchHtml)
 // Add functionality to the search form and eventlisteners
 
 //Display 12 random users
-for(let i = 0; i < 12; i++){
-    
+
+function generateCard(picture, firstName, lastName, email, city, state){
+    const userCardHtml = `
+    <div class="card">
+    <div class="card-img-container">
+        <img class="card-img" src=${picture} alt=profile picture>
+    </div>
+    <div class="card-info-container">
+        <h3 id="name" class="card-name cap">${firstName} ${lastName}</h3>
+        <p class="card-text">${email}</p>
+        <p class="card-text cap">${city}, ${state}</p>
+    </div>
+    </div>
+`;
+    return userCardHtml;
+}
+
+
+let i = 0;
+
+while (i < 12){
+    getRandomUser('https://randomuser.me/api/')
+        .then(data => {divPhotoGalleryContainer.insertAdjacentHTML('afterend', 
+            generateCard(
+                data.results[0].picture.medium,
+                data.results[0].name.first,
+                data.results[0].name.last,
+                data.results[0].email,
+                data.results[0].location.city,
+                data.results[0].location.state
+            ));
+        });
+
+    i = i + 1;
 }
