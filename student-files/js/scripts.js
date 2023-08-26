@@ -87,6 +87,32 @@ function modal(picture, firstName, lastName, email, city, phone, street, state, 
     return modalHtml;
 }
 
+function getModal(object){
+    const dob = new Date(object.dob.date);
+    const formattedDob = `${dob.getMonth() + 1}/${dob.getDate()}/${dob.getFullYear()}`;
+
+    const modalUserHtml = modal(
+        object.picture.large,
+        object.name.first,
+        object.name.last,
+        object.email,
+        object.location.city,
+        object.phone,
+        `${object.location.street.number} ${object.location.street.name}`,
+        object.location.state,
+        object.location.postcode,
+        formattedDob
+    );
+
+    divPhotoGalleryContainer.insertAdjacentHTML('afterend', modalUserHtml);
+}
+
+function closeModal(){
+    const closeModal = document.getElementById('modal-close-btn');
+    closeModal.addEventListener('click', () => {
+        document.querySelector('.modal-container').remove();
+    });
+}
 
 let people = [];
 
@@ -111,24 +137,27 @@ getUsers().then(data => {
         card.addEventListener('click', () => {
             const userData = people[index];
 
-            const modalUserHtml = modal(
-                userData.picture.large,
-                userData.name.first,
-                userData.name.last,
-                userData.email,
-                userData.location.city,
-                userData.phone,
-                `${userData.location.street.number} ${userData.location.street.name}`,
-                userData.location.state,
-                userData.location.postcode,
-                userData.dob.date
-            );
+            getModal(userData);
 
-            divPhotoGalleryContainer.insertAdjacentHTML('afterend', modalUserHtml);
+            closeModal();
 
-            const closeModal = document.getElementById('modal-close-btn');
-            closeModal.addEventListener('click', () => {
-                document.querySelector('.modal-container').remove();
+            const modalPrev = document.getElementById('modal-prev');
+            const modalNext = document.getElementById('modal-next');
+
+            let currentIndex = index;
+
+            modalPrev.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + people.length) % people.length;
+                closeModal();
+                const prevUser = people[currentIndex];
+                getModal(prevUser);
+            });
+
+            modalNext.addEventListener('click', () => {
+                currentIndex = index + 1;
+                closeModal();
+                const nextUser = people[currentIndex];
+                getModal(nextUser);
             });
         });
     });
