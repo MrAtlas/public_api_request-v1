@@ -4,26 +4,34 @@
 const divSearchContainer = document.querySelector('.search-container');
 const divPhotoGalleryContainer = document.getElementById('gallery');
 
-//Random user url 'https://randomuser.me/api/'
+//Random user url 'https://randomuser.me/api/?nat=us&results=12'
+//looking at the documentation I was able to get multiple users of us nationality
 
-//Method to get the api from random user 
-function getRandomUser(url){
-    return fetch(url)
-        .then(checkStatus)
-        .then(res => res.json())
-        .catch(error => console.log(error));
-}
 
-//checkStatus will check if the Promise has been resolved
-function checkStatus(response){
-    if(response.ok === true){
-      return Promise.resolve(response);
-    }else{
-      return Promise.reject(new Error(response.statusText));
+async function getUsers() {
+    try {
+        const response = await fetch('https://randomuser.me/api/?nat=us&results=12');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        return [];
     }
 }
 
-//getRandomUser('https://randomuser.me/api/').then(data => console.log(data.results[0]))
+/*
+
+let people = [];
+
+getUsers().then(data => {
+    people.push(...data.results);
+})
+
+*/
+
   
 //Adding the search form to the page
 const searchHtml = `
@@ -34,10 +42,6 @@ const searchHtml = `
 `;
 divSearchContainer.insertAdjacentHTML('afterend', searchHtml)
 
-//TODO:
-// Add functionality to the search form and eventlisteners
-
-//Display 12 random users
 
 //generateCard Will generate a card with the given parameters and then return that card
 function generateCard(picture, firstName, lastName, email, city, state){
@@ -54,32 +58,6 @@ function generateCard(picture, firstName, lastName, email, city, state){
     </div>
 `;
     return userCardHtml;
-}
-
-//The while loop will use the api call and generate 12 card ( as soon as i varible gets from 0 to 11 = so 12)
-//the will append to the array people each call
-//then will append each card to the gallery
-let i = 0;
-let people = [];
-
-while (i < 12){
-    getRandomUser('https://randomuser.me/api/?nat=us')
-    .then(data => {
-        people.push(data.results[0]);
-        const userCardHtml = generateCard(
-            data.results[0].picture.medium,
-            data.results[0].name.first,
-            data.results[0].name.last,
-            data.results[0].email,
-            data.results[0].location.city,
-            data.results[0].location.state
-        );
-
-      divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
-            
-    });
-
-  i = i + 1;
 }
 
 //For modal
@@ -109,19 +87,31 @@ function modal(picture, firstName, lastName, email, city, phone, street, state, 
     return modalHtml;
 }
 
-//I decided to use setTimeout to give 2 seconds of time for the script to generate the cards then i can select them
-//I then used a forEach loop to get the card and the index adding to each card an event listener
-//then calling the modal if the card is clicked using thepeople array and the index
-//also added a close button event listener to remove the modal from the document
-//added the prev and next element giving them an event listener
-setTimeout(() => {
+
+let people = [];
+
+getUsers().then(data => {
+    people.push(...data.results);
+
+    for(let i = 0; i < people.length; i++){
+        const userCardHtml = generateCard(
+            people[i].picture.medium,
+            people[i].name.first,
+            people[i].name.last,
+            people[i].email,
+            people[i].location.city,
+            people[i].location.state
+        )
+        divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
+    }
+
     const cards = divPhotoGalleryContainer.querySelectorAll('.card');
 
     cards.forEach((card, index) => {
         card.addEventListener('click', () => {
             const userData = people[index];
 
-            const modalCardHtml = modal(
+            const modalUserHtml = modal(
                 userData.picture.large,
                 userData.name.first,
                 userData.name.last,
@@ -134,56 +124,44 @@ setTimeout(() => {
                 userData.dob.date
             );
 
-            divPhotoGalleryContainer.insertAdjacentHTML('afterend', modalCardHtml);
+            divPhotoGalleryContainer.insertAdjacentHTML('afterend', modalUserHtml);
+
             const closeModal = document.getElementById('modal-close-btn');
             closeModal.addEventListener('click', () => {
                 document.querySelector('.modal-container').remove();
             });
-
-            const modalPrev = document.getElementById('modal-prev');
-            modalPrev.addEventListener('click', () => {
-                //
-            });
-            
-            const modalNext = document.getElementById('modal-next');
-            modalNext.addEventListener('click', () => {
-                //
-            });
-
         });
     });
-}, 2000);
 
+    const searchForm = document.querySelector('form');
+    const searchInput = document.getElementById('search-input');
 
-//Search Input
-//got the search form that i previously added and gave it an event listener for submit
-//set the value of the input to lower case
-//then filtering the people array for person that includes the first name and/or lastName
-//cleaned the document of all cardsand generated a new card of the people filtered
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-const searchForm = document.querySelector('form');
-const searchInput = document.getElementById('search-input');
+        const searchTerm = searchInput.value.toLowerCase();
 
-searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const searchTerm = searchInput.value.toLowerCase();
-    
-    const filteredPeople = people.filter(person => {
-        const fullName = `${person.name.first.toLowerCase()} ${person.name.last.toLowerCase()}`;
-        return fullName.includes(searchTerm);
+        const filteredUsers = people.filter(user => {
+            const fullName = `${user.name.first.toLowerCase()} ${user.name.last.toLowerCase()}`;
+            return fullName.includes(searchTerm);
+        });
+
+        divPhotoGalleryContainer.innerHTML = '';
+
+        filteredUsers.forEach(user => {
+            const userCardHtml = generateCard(
+                user.picture.medium,
+                user.name.first,
+                user.name.last,
+                user.email,
+                user.location.city,
+                user.location.state
+            )
+            divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
+        });
     });
-    
-    divPhotoGalleryContainer.innerHTML = '';
-    
-    filteredPeople.forEach(person => {
-        const userCardHtml = generateCard(
-            person.picture.medium,
-            person.name.first,
-            person.name.last,
-            person.email,
-            person.location.city,
-            person.location.state
-        );
-        divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
-    });
-});
+})
+
+
+//Custom CSS
+
