@@ -150,17 +150,32 @@ function closeModal(){
     });
 }
 
-let people = [];
+function searchUser(people){
+    const searchForm = document.querySelector('form');
+    const searchInput = document.getElementById('search-input');
 
-getUsers().then(data => {
-    //this will copy the data from the fetch into the people array
-    people.push(...data.results);
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-    //this will generate a card for each user object in people array
-    for(let i = 0; i < people.length; i++){
-        generateCard(people[i])
-    }
+        const searchTerm = searchInput.value.toLowerCase();
 
+        const filteredUsers = people.filter(user => {
+            const fullName = `${user.name.first.toLowerCase()} ${user.name.last.toLowerCase()}`;
+            return fullName.includes(searchTerm);
+        });
+
+        divPhotoGalleryContainer.innerHTML = '';
+
+        filteredUsers.forEach(user => {
+            generateCard(user);
+            //divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
+        });
+
+        card(filteredUsers);
+    });
+}
+
+function card(people){
     //select all the cards generated
     const cards = divPhotoGalleryContainer.querySelectorAll('.card');
 
@@ -196,29 +211,49 @@ getUsers().then(data => {
             });
         });
     });
+}
 
-    const searchForm = document.querySelector('form');
-    const searchInput = document.getElementById('search-input');
+let people = [];
 
-    searchForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+getUsers().then(data => {
+    //this will copy the data from the fetch into the people array
+    people.push(...data.results);
 
-        const searchTerm = searchInput.value.toLowerCase();
-
-        const filteredUsers = people.filter(user => {
-            const fullName = `${user.name.first.toLowerCase()} ${user.name.last.toLowerCase()}`;
-            return fullName.includes(searchTerm);
-        });
-
-        divPhotoGalleryContainer.innerHTML = '';
-
-        filteredUsers.forEach(user => {
-            generateCard(user);
-            //divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
-        });
-    });
+    //this will generate a card for each user object in people array
+    for(let i = 0; i < people.length; i++){
+        generateCard(people[i])
+    }
+    card(people);
+    searchUser(people);
 })
 
 
 //Custom CSS
+
+//select all the cards generated
+/*
+*I added a setTimeout to give time to the document to generate all the cards
+* then select them and add a style class that will transform the card to grow when the mouse hover 
+* credits:
+* https://travis.media/how-to-make-an-item-grow-on-hover-with-css/
+* https://developer.mozilla.org/en-US/docs/Web/API/Element/mouseover_event
+*/
+
+
+setTimeout(() => {
+    const cards = divPhotoGalleryContainer.querySelectorAll('.card');
+
+    const cssGrow = 'transform: scale(1.1);';
+
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style = cssGrow;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style = '';
+        });
+    });
+
+}, 1500)
 
