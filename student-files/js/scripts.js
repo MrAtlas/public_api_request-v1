@@ -44,10 +44,10 @@ divSearchContainer.insertAdjacentHTML('afterend', searchHtml)
 
 
 //generateCard Will generate a card with the given parameters and then return that card
-function generateCard(object){
+function generateCard(object, index){
 
     const userCardHtml = `
-    <div class="card">
+    <div class="card" data-index=${index}>
     <div class="card-img-container">
         <img class="card-img" src=${object.picture.medium} alt=profile picture>
     </div>
@@ -63,7 +63,7 @@ function generateCard(object){
 
 //For modal
 //modal as the generateCard will create a modal (from index.html) with the parameters given 
-function modal(object){
+function modal(object, index){
 
     const dob = new Date(object.dob.date);
     const formattedDob = `${dob.getMonth() + 1}/${dob.getDate()}/${dob.getFullYear()}`;
@@ -88,68 +88,50 @@ function modal(object){
             </div>
         </div>
     `;
+
     //divPhotoGalleryContainer.insertAdjacentElement('afterend', modalHtml);
     divPhotoGalleryContainer.insertAdjacentHTML('afterend', modalHtml);
-}
 
-function prevModal(prevUser){
-    const currentModal = document.querySelector('.modal');
+    closeModal();
 
-    const dob = new Date(prevUser.dob.date);
-    const formattedDob = `${dob.getMonth() + 1}/${dob.getDate()}/${dob.getFullYear()}`;
-
-    currentModal.innerHTML = `
-        <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
-        <div class="modal-info-container">
-            <img class="modal-img" src=${prevUser.picture.large} alt="profile picture">
-            <h3 id="name" class="modal-name cap">${prevUser.name.first} ${prevUser.name.last}</h3>
-            <p class="modal-text">${prevUser.email}</p>
-            <p class="modal-text cap">${prevUser.location.city}</p>
-            <hr>
-            <p class="modal-text">${prevUser.phone}</p>
-            <p class="modal-text">${prevUser.location.street.number} ${prevUser.location.street.name}, ${prevUser.location.city}, ${prevUser.location.state}, ${prevUser.location.postcode}</p>
-            <p class="modal-text">Birthday: ${formattedDob}</p>
-        </div>
-        <div class="modal-btn-container">
-            <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
-            <button type="button" id="modal-next" class="modal-next btn">Next</button>
-        </div>
-    `;
-}
-
-function nextModal(nextUser){
-    const currentModal = document.querySelector('.modal');
-
-    const dob = new Date(nextUser.dob.date);
-    const formattedDob = `${dob.getMonth() + 1}/${dob.getDate()}/${dob.getFullYear()}`;
-
-    currentModal.innerHTML = `
-        <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
-        <div class="modal-info-container">
-            <img class="modal-img" src=${nextUser.picture.large} alt="profile picture">
-            <h3 id="name" class="modal-name cap">${nextUser.name.first} ${nextUser.name.last}</h3>
-            <p class="modal-text">${nextUser.email}</p>
-            <p class="modal-text cap">${nextUser.location.city}</p>
-            <hr>
-            <p class="modal-text">${nextUser.phone}</p>
-            <p class="modal-text">${nextUser.location.street.number} ${nextUser.location.street.name}, ${nextUser.location.city}, ${nextUser.location.state}, ${nextUser.location.postcode}</p>
-            <p class="modal-text">Birthday: ${formattedDob}</p>
-        </div>
-        <div class="modal-btn-container">
-            <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
-            <button type="button" id="modal-next" class="modal-next btn">Next</button>
-        </div>
-    `;
-}
-
-
-function closeModal(){
-    const closeModal = document.getElementById('modal-close-btn');
-    closeModal.addEventListener('click', () => {
-        document.querySelector('.modal-container').remove();
+    const modalContainer = document.querySelector('.modal-container');
+    modalContainer.addEventListener('click', e => {
+      if (e.target.id === 'modal-next') {
+        if (index !== people.length - 1) {
+          index += 1;
+          document.body.removeChild(modalContainer);
+          modal(people[index], index);
+        }
+      }
+      if (e.target.id === 'modal-prev') {
+        if (index !== 0) {
+          index -= 1;
+          document.body.removeChild(modalContainer);
+          modal(people[index], index);
+        }
+      }
     });
 }
 
+//updated this function to get the modal-close-btn and add an event listener
+//then it checks if it exist and if it does and its clicked remove it
+function closeModal() {
+    const closeModalButton = document.getElementById('modal-close-btn');
+    closeModalButton.addEventListener('click', () => {
+        const modalContainer = document.querySelector('.modal-container');
+        if (modalContainer) {
+            modalContainer.remove();
+        }
+    });
+}
+
+/**
+ * The search function will get the form and add a submit event listener which prevents default loading
+ * Then it will get the input and set it to lower case 
+ * then it will create a filteredUsers which will get each user and get the first and last name to lower case
+ * and it returns a new array of users that contain the search item
+ * it will clean the gallery container and generates a new card for the new array of users
+ */
 function searchUser(people){
     const searchForm = document.querySelector('form');
     const searchInput = document.getElementById('search-input');
@@ -166,8 +148,8 @@ function searchUser(people){
 
         divPhotoGalleryContainer.innerHTML = '';
 
-        filteredUsers.forEach(user => {
-            generateCard(user);
+        filteredUsers.forEach((user, index) => {
+            generateCard(user, index);
             //divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
         });
 
@@ -175,6 +157,9 @@ function searchUser(people){
     });
 }
 
+/**
+ * this will create a card and adds an event listener for each card which will call the modal function
+ */
 function card(people){
     //select all the cards generated
     const cards = divPhotoGalleryContainer.querySelectorAll('.card');
@@ -186,33 +171,19 @@ function card(people){
 
             //this will create a modal with the userData of index clicked,
             //basically when a card is clicked it will call modal with that object
-            modal(userData);
+            modal(userData, index);
 
             closeModal();
-
-            /**
-             * First selecting the next button and prev button
-             */
-            const modalPrev = document.getElementById('modal-prev');
-            const modalNext = document.getElementById('modal-next');
-
-            let currentIndex = index;
-
-            modalPrev.addEventListener('click', () => {
-                currentIndex = index - 1;
-                const prevUser = people[currentIndex];
-                prevModal(prevUser);
-            });
-
-            modalNext.addEventListener('click', () => {
-                currentIndex = index + 1;
-                const nextUser = people[currentIndex];
-                nextModal(nextUser);
-            });
         });
     });
 }
 
+/**
+ * Create a new empty array
+ * then using the getUsers api function will push the users in to the array
+ * loops through the array and calls generateCard for each user object
+ * then it calls the card and search method
+ */
 let people = [];
 
 getUsers().then(data => {
@@ -221,7 +192,7 @@ getUsers().then(data => {
 
     //this will generate a card for each user object in people array
     for(let i = 0; i < people.length; i++){
-        generateCard(people[i])
+        generateCard(people[i], i)
     }
     card(people);
     searchUser(people);
