@@ -4,6 +4,63 @@
 const divSearchContainer = document.querySelector('.search-container');
 const divPhotoGalleryContainer = document.getElementById('gallery');
 
+//Update
+//Got the states codes for the modal
+//credits: https://gist.github.com/dsoverby1986/df89c1ed31f3b74b1b85c73bfae1d095
+
+var states = [
+    { name: 'Alabama', abbrev: 'AL' },
+    { name: 'Alaska', abbrev: 'AK' },
+    { name: 'Arizona', abbrev: 'AZ' },
+    { name: 'Arkansas', abbrev: 'AR' },
+    { name: 'California', abbrev: 'CA' },
+    { name: 'Colorado', abbrev: 'CO' },
+    { name: 'Connecticut', abbrev: 'CT' },
+    { name: 'Delaware', abbrev: 'DE' },
+    { name: 'Florida', abbrev: 'FL' },
+    { name: 'Georgia', abbrev: 'GA' },
+    { name: 'Hawaii', abbrev: 'HI' },
+    { name: 'Idaho', abbrev: 'ID' },
+    { name: 'Illinois', abbrev: 'IL' },
+    { name: 'Indiana', abbrev: 'IN' },
+    { name: 'Iowa', abbrev: 'IA' },
+    { name: 'Kansas', abbrev: 'KS' },
+    { name: 'Kentucky', abbrev: 'KY' },
+    { name: 'Louisiana', abbrev: 'LA' },
+    { name: 'Maine', abbrev: 'ME' },
+    { name: 'Maryland', abbrev: 'MD' },
+    { name: 'Massachusetts', abbrev: 'MA' },
+    { name: 'Michigan', abbrev: 'MI' },
+    { name: 'Minnesota', abbrev: 'MN' },
+    { name: 'Mississippi', abbrev: 'MS' },
+    { name: 'Missouri', abbrev: 'MO' },
+    { name: 'Montana', abbrev: 'MT' },
+    { name: 'Nebraska', abbrev: 'NE' },
+    { name: 'Nevada', abbrev: 'NV' },
+    { name: 'New Hampshire', abbrev: 'NH' },
+    { name: 'New Jersey', abbrev: 'NJ' },
+    { name: 'New Mexico', abbrev: 'NM' },
+    { name: 'New York', abbrev: 'NY' },
+    { name: 'North Carolina', abbrev: 'NC' },
+    { name: 'North Dakota', abbrev: 'ND' },
+    { name: 'Ohio', abbrev: 'OH' },
+    { name: 'Oklahoma', abbrev: 'OK' },
+    { name: 'Oregon', abbrev: 'OR' },
+    { name: 'Pennsylvania', abbrev: 'PA' },
+    { name: 'Rhode Island', abbrev: 'RI' },
+    { name: 'South Carolina', abbrev: 'SC' },
+    { name: 'South Dakota', abbrev: 'SD' },
+    { name: 'Tennessee', abbrev: 'TN' },
+    { name: 'Texas', abbrev: 'TX' },
+    { name: 'Utah', abbrev: 'UT' },
+    { name: 'Vermont', abbrev: 'VT' },
+    { name: 'Virginia', abbrev: 'VA' },
+    { name: 'Washington', abbrev: 'WA' },
+    { name: 'West Virginia', abbrev: 'WV' },
+    { name: 'Wisconsin', abbrev: 'WI' },
+    { name: 'Wyoming', abbrev: 'WY' }
+];
+
 //Random user url 'https://randomuser.me/api/?nat=us&results=12'
 //looking at the documentation I was able to get multiple users of us nationality
 
@@ -61,13 +118,29 @@ function generateCard(object, index){
     divPhotoGalleryContainer.insertAdjacentHTML('beforeend', userCardHtml);
 }
 
+//get the state code
+function getState(object) {
+    const stateApi = object.location.state;
+  
+    for (let i = 0; i < states.length; i++) {
+      if (stateApi === states[i].name) {
+        return states[i].abbrev;
+      }
+    }
+  
+    return 'Unknown';
+  }
+  
+
 //For modal
 //modal as the generateCard will create a modal (from index.html) with the parameters given 
 function modal(object, index){
 
     const dob = new Date(object.dob.date);
     const formattedDob = `${dob.getMonth() + 1}/${dob.getDate()}/${dob.getFullYear()}`;
-    
+
+    const state = getState(object);
+
     const modalHtml = `
         <div class="modal-container">
         <div class="modal">
@@ -79,7 +152,7 @@ function modal(object, index){
                 <p class="modal-text cap">${object.location.city}</p>
                 <hr>
                 <p class="modal-text">${object.phone}</p>
-                <p class="modal-text">${object.location.street.number} ${object.location.street.name}, ${object.location.city}, ${object.location.state}, ${object.location.postcode}</p>
+                <p class="modal-text">${object.location.street.number} ${object.location.street.name}, ${object.location.city}, ${state}, ${object.location.postcode}</p>
                 <p class="modal-text">Birthday: ${formattedDob}</p>
             </div>
             <div class="modal-btn-container">
